@@ -20,13 +20,14 @@ const int n_demesh = 200;
 const int n_demesw =60; 
 const unsigned int n_spec = 2;
 float M1 = 0.25;
-float M2 = 0.25;
+float M2 = 0;
 float B =0;
 float g0 = 0.01;
 int bandSize = 2;
 unsigned long prof_hist = 0;
 unsigned long fast_samp_flag = 1;
 unsigned long freeze_flag = 0;
+int ID_seed = 4;
 
 
 
@@ -245,7 +246,7 @@ int main (int argc, char * argv[]){
 	using namespace std;
 
 	int c;
-    while ((c = getopt (argc, argv, "K:Z:B:W:M:G:F:S")) != -1)
+    while ((c = getopt (argc, argv, "K:Z:B:W:M:G:F:S:I")) != -1)
     {
         if (c == 'K')
             K  = atoi(optarg); // carrying capacity
@@ -264,6 +265,8 @@ int main (int argc, char * argv[]){
             fast_samp_flag = atoi(optarg); // growth rate
         else if (c == 'S')
             bandSize = atoi(optarg); // growth rate
+        else if (c == 'I')
+            ID_seed = atoi(optarg); // growth rate
 
     }
     
@@ -280,7 +283,8 @@ int main (int argc, char * argv[]){
 	T = gsl_rng_mt19937;
 	r = gsl_rng_alloc(T);
 	//int sysRandom;
-	gsl_rng_set(r, time(NULL));
+
+	gsl_rng_set(r, ID_seed);
 
 	double new_prob[n_spec + 1];
 	unsigned int new_cnt[n_spec + 1];
@@ -291,7 +295,8 @@ int main (int argc, char * argv[]){
 	//int dt = 0;
 
 	double pop_shift = 0.0;
-	double w_s = 1.0;
+	double w_s1 = 1.0;
+	double w_s2 = 0;
 	double w_avg;
 	double w_v;
 
@@ -319,13 +324,14 @@ int main (int argc, char * argv[]){
 	//vector <double> varhet_hist;
 
 	//data files
-	ofstream flog, fpop, fhet, fprof,fsects,frough_10,frough_20,frough_30,frough_40,frough_50,frough_60,frough_70,frough_80,frough_90,frough_100,frough_110,frough_120,frough_130,frough_140,frough_150,frough_160,frough_170,frough_180;
+	ofstream flog, fpop, fhet, fprof,fsects,ftime;
 	time_t time_start;
 	clock_t c_init = clock();
 	struct tm * timeinfo;
 	char buffer [80];
 	float ht = 0.5;
 	int prof_count = 4;
+	int dt =0;
 
 
     time (&time_start);
@@ -375,6 +381,7 @@ int main (int argc, char * argv[]){
     fhet.open(folder+hetName);
     fpop.open(folder+popName);
     fprof.open(folder+profName);
+    ftime.open(folder + "time_results.txt" , ios_base::app);
     fsects.open(folder+sectsName);
     /*frough_10.open(folder+rough10Name);
     frough_20.open(folder+rough20Name);
@@ -403,17 +410,41 @@ int main (int argc, char * argv[]){
 
 
 
-	for(int i = 0; i < int(n_demesh*.5); i++){
+	for(int i = 0; i < int(n_demesh*.1); i++){
 		for(int j = 0; j < n_demesw; j++){
 
-			deme[i][j][0] = .5*K;
-			deme[i][j][1] = .5*K;
+			deme[i][j][0] = K;
+			//deme[i][j][1] =  0;
 
 
 		}
 
 
 	}
+
+	for(int i = int(n_demesh/2-5); i < int(n_demesh/2+5); i++){
+		for(int j = 0; j < n_demesw; j++){
+
+			deme[i][j][0] = int(K*3/4);
+			//deme[i][j][1] =  0;
+
+
+		}
+
+
+	}
+
+	///for(int i = 0; i < int(n_demesh*.1); i++){
+		//for(int j = 0; j < n_demesw; j++){
+
+		//	deme[i][j][0] = K;
+			//deme[i][j][1] =  0;
+
+
+		//}
+
+
+	//}
 	//initial population in middle
 	//deme[int(n_demes/2)][int(n_demes/2)][0] = K;
 	//deme[int(n_demes/2)][int(n_demes/2)][1] = K;
@@ -438,8 +469,9 @@ int main (int argc, char * argv[]){
     }
 
 
-	for (int dt = 0 ; dt < n_gens; dt++ ){
-	//while(ht>h_thresh){
+	//for (int dt = 0 ; dt < n_gens; dt++ ){
+	while(calcLastRow(deme) < n_demesh-5){
+		//cout<<calcLastRow(deme)<<endl;
 
 		int d_start = 0;
 		int d_end= n_demesh ;
@@ -492,8 +524,8 @@ int main (int argc, char * argv[]){
 
 			long double f1 = deme[0][j][0]/int(K);
 			long double f2 = deme[0][j][1]/int(K);
-			f1 = (1 - M*(3/4))*f1;
-			f2 = (1 - M*(3/4))*f2; 
+			f1 = (1 - M1*(3/4))*f1;
+			f2 = (1 - M2*(3/4))*f2; 
 
 
 			for(int ne = 0; ne <3; ne++){
@@ -505,10 +537,11 @@ int main (int argc, char * argv[]){
 			}
 
 			w_v = 1 - g0*(1+ B*(f1+f2));
-			w_avg = w_v + (w_s - w_v)*(f1 + f2);
+			
+			w_avg = w_v + (w_s1 - w_v)*f1 +(w_s2 - w_v)*f2;
 
-			f1 *= w_s/w_avg;
-			f2 *= w_s/w_avg;
+			f1 *= w_s1/w_avg;
+			f2 *= w_s2/w_avg;
 			new_prob[0] = 1-f1-f2;
 			new_prob[1] = f1;
 			new_prob[2] = f2;
@@ -552,8 +585,8 @@ int main (int argc, char * argv[]){
 
 				long double f1 = deme[i][j][0]/int(K);
 				long double f2 = deme[i][j][1]/int(K);
-				f1 = (1 - M)*f1;
-				f2 = (1 - M)*f2; 
+				f1 = (1 - M1)*f1;
+				f2 = (1 - M2)*f2; 
 				for(int ne = 0; ne <4; ne++){
 
 					f1+= (M1/4)*deme_aux[neighbs[ne][0]][neighbs[ne][1]][0]/int(K);
@@ -563,10 +596,11 @@ int main (int argc, char * argv[]){
 				}
 
 				w_v = 1 - g0*(1+ B*(f1+f2));
-				w_avg = w_v + (w_s - w_v)*(f1 + f2);
+				w_avg = w_v + (w_s1 - w_v)*f1+(w_s2 - w_v)*f2;
 
-				f1 *= w_s/w_avg;
-				f2 *= w_s/w_avg;
+
+				f1 *= w_s1/w_avg;
+				f2 *= w_s2/w_avg;
 				new_prob[0] = 1-f1-f2;
 				new_prob[1] = f1;
 				new_prob[2] = f2;
@@ -604,8 +638,8 @@ int main (int argc, char * argv[]){
 
 			long double f1 = deme[i][j][0]/int(K);
 			long double f2 = deme[i][j][1]/int(K);
-			f1 = (1 - M*(3/4))*f1;
-			f2 = (1 - M*(3/4))*f2; 
+			f1 = (1 - M1*(3/4))*f1;
+			f2 = (1 - M2*(3/4))*f2; 
 
 
 			for(int ne = 0; ne <3; ne++){
@@ -617,10 +651,10 @@ int main (int argc, char * argv[]){
 			}
 
 			w_v = 1 - g0*(1+ B*(f1+f2));
-			w_avg = w_v + (w_s - w_v)*(f1 + f2);
+			w_avg = w_v + (w_s1 - w_v)*f1 + (w_s2 - w_v)*f2 ;
 
-			f1 *= w_s/w_avg;
-			f2 *= w_s/w_avg;
+			f1 *= w_s1/w_avg;
+			f2 *= w_s2/w_avg;
 			new_prob[0] = 1-f1-f2;
 			new_prob[1] = f1;
 			new_prob[2] = f2;
@@ -748,7 +782,7 @@ int main (int argc, char * argv[]){
 
 		}
 	
-		//dt+=1;
+		dt+=1;
 
 
     }
@@ -787,6 +821,7 @@ int main (int argc, char * argv[]){
 		}
 
     }
+    ftime << B << " " << bandSize << " " << ID_seed << dt << endl;
 
     clock_t c_fin = clock();
     double run_time = double(c_fin - c_init)/CLOCKS_PER_SEC;

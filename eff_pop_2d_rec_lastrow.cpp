@@ -378,11 +378,11 @@ int main (int argc, char * argv[]){
 	string folder = "";
 
     flog.open(folder+logName);
-    fhet.open(folder+hetName);
-    fpop.open(folder+popName);
-    fprof.open(folder+profName);
+    //fhet.open(folder+hetName);
+    //fpop.open(folder+popName);
+    //fprof.open(folder+profName);
     ftime.open(folder + "time_results.txt" , ios_base::app);
-    fsects.open(folder+sectsName);
+    //fsects.open(folder+sectsName);
     /*frough_10.open(folder+rough10Name);
     frough_20.open(folder+rough20Name);
     frough_30.open(folder+rough30Name);
@@ -787,11 +787,11 @@ int main (int argc, char * argv[]){
 
     }
    //int n_data = int(dt/record_time);
-   for(int i=0;i < n_data;i++){
+   //for(int i=0;i < n_data;i++){
    		//fvarhet << int(i*record_time) << ", "  << varhet_hist[i] << endl;
-    	fhet << int(i*record_time) << ", "  << het_hist[i] << endl;
-    	fpop << int(i*record_time) << ", "  << pop_hist[i] << endl;
-    	fsects<< int(i*record_time) << ", "  << sects_hist[i] << endl;
+    	//fhet << int(i*record_time) << ", "  << het_hist[i] << endl;
+    	//fpop << int(i*record_time) << ", "  << pop_hist[i] << endl;
+    	//fsects<< int(i*record_time) << ", "  << sects_hist[i] << endl;
     	/*frough_10<< int(i*record_time) << ", "  << rough_hist_10[i] << endl;
     	frough_20<< int(i*record_time) << ", "  << rough_hist_20[i] << endl;
     	frough_30<< int(i*record_time) << ", "  << rough_hist_30[i] << endl;
@@ -811,16 +811,16 @@ int main (int argc, char * argv[]){
     	frough_170<< int(i*record_time) << ", "  << rough_hist_170[i] << endl;
     	frough_180<< int(i*record_time) << ", "  << rough_hist_180[i] << endl;*/
 
-    }
+    //}
 
-    for(int i=0;i < n_demesh; i++){
-    	for(int j =0;j < n_demesw; j++){
+    //for(int i=0;i < n_demesh; i++){
+    //	for(int j =0;j < n_demesw; j++){
 
-    		fprof << i << ", " << j<< ", " << deme[i][j][0] << ", "  << deme[i][j][1] << endl;
+    //		fprof << i << ", " << j<< ", " << deme[i][j][0] << ", "  << deme[i][j][1] << endl;
 
-		}
+	//	}
 
-    }
+    //}
     ftime << B << " " << bandSize << " " << ID_seed << dt << endl;
 
     clock_t c_fin = clock();

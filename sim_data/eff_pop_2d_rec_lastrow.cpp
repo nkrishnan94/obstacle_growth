@@ -13,21 +13,21 @@
 #include <gsl/gsl_randist.h>
 
 
-unsigned long K  = 1000;
+unsigned long K  = 100;
 unsigned int n_gens = 800;
 //float h_thresh = .1;
 const int n_demesh = 200; 
 const int n_demesw =60; 
 const unsigned int n_spec = 2;
-float M1 = 0.25;
-float M2 = 0;
+float M1 = 0.15;
+float M2 = 0.01;
 float B =0;
-float g0 = 0.01;
-int bandSize = 2;
+float g0 = 0.02;
+unsigned int bandSize = 2;
 unsigned long prof_hist = 0;
 unsigned long fast_samp_flag = 1;
 unsigned long freeze_flag = 0;
-int ID_seed = 4;
+unsigned int ID_seed = 4;
 
 
 
@@ -246,7 +246,7 @@ int main (int argc, char * argv[]){
 	using namespace std;
 
 	int c;
-    while ((c = getopt (argc, argv, "K:Z:B:W:M:G:F:S:I")) != -1)
+    while ((c = getopt (argc, argv, "K:Z:B:M:G:F:S:U")) != -1)
     {
         if (c == 'K')
             K  = atoi(optarg); // carrying capacity
@@ -258,14 +258,15 @@ int main (int argc, char * argv[]){
         //    h_thresh = atof(optarg); // cooperativity
 
         else if (c == 'M')
-            M = atof(optarg); // migration probability
+            M1 = atof(optarg); // migration probability
         else if (c == 'G')
             g0 = atof(optarg); // growth rate
         else if (c == 'F')
             fast_samp_flag = atoi(optarg); // growth rate
         else if (c == 'S')
+
             bandSize = atoi(optarg); // growth rate
-        else if (c == 'I')
+        else if (c == 'U')
             ID_seed = atoi(optarg); // growth rate
 
     }
@@ -283,8 +284,9 @@ int main (int argc, char * argv[]){
 	T = gsl_rng_mt19937;
 	r = gsl_rng_alloc(T);
 	//int sysRandom;
-
-	gsl_rng_set(r, ID_seed);
+	int seed = time(NULL);
+	gsl_rng_set(r, seed);
+	//gsl_rng_set(r, ID_seed);
 
 	double new_prob[n_spec + 1];
 	unsigned int new_cnt[n_spec + 1];
@@ -296,7 +298,7 @@ int main (int argc, char * argv[]){
 
 	double pop_shift = 0.0;
 	double w_s1 = 1.0;
-	double w_s2 = 0;
+	double w_s2 = 1;
 	double w_avg;
 	double w_v;
 
@@ -340,13 +342,14 @@ int main (int argc, char * argv[]){
 
 	strftime (buffer,80,"%F-%H-%M-%S",timeinfo);
 
-	ostringstream date_time, Kstr,  Mstr, Bstr, Gstr;
+	ostringstream date_time, Kstr,  Mstr, Bstr, Gstr, Sstr;
 	date_time << buffer;
 	Kstr << K;
-	Mstr << M;
+	Mstr << M1;
 	Bstr << B;
 	Gstr << g0;
-	string param_string =  "K"+Kstr.str()+"_M" + Mstr.str() + "_B" +Bstr.str() + "_G" +Gstr.str() +"_"+"Width20_";
+	Sstr << bandSize;
+	string param_string =  "K"+Kstr.str()+"_M" + Mstr.str() + "_B" +Bstr.str() + "_G" +Gstr.str() +"_"+"Width_"+Sstr.str();
 
 
 
@@ -374,8 +377,8 @@ int main (int argc, char * argv[]){
 	string rough160Name = "rough_160_" + param_string + date_time.str() + ".txt";
 	string rough170Name = "rough_170_" + param_string + date_time.str() + ".txt";
 	string rough180Name = "rough_180_" + param_string + date_time.str() + ".txt";*/
-	//string folder = "sim_data/";
-	string folder = "";
+	string folder = "sim_data/";
+	//string folder = "";
 
     flog.open(folder+logName);
     //fhet.open(folder+hetName);
@@ -422,11 +425,12 @@ int main (int argc, char * argv[]){
 
 	}
 
-	for(int i = int(n_demesh/2-5); i < int(n_demesh/2+5); i++){
+	for(int i = int(n_demesh/2-bandSize); i < int(n_demesh/2+bandSize); i++){
 		for(int j = 0; j < n_demesw; j++){
 
-			deme[i][j][0] = int(K*3/4);
-			//deme[i][j][1] =  0;
+			deme[i][j][1] = int(K*3/4);
+			//cout << int(K*3/4)<< endl;
+			deme[i][j][0] =  0;
 
 
 		}
@@ -452,12 +456,12 @@ int main (int argc, char * argv[]){
 
 
 
-    if (prof_hist !=0){
+    if ((prof_hist !=0)){
 		ostringstream strT;
 
-		string proftName = "prof_T_start_" + date_time.str() + ".txt";
+		string proftName = "prof_T_start_" + param_string + ".txt";
 		ofstream fproft;
-	    fproft.open(proftName);
+	    fproft.open(folder+proftName);
 	    for(int i = 0; i <n_demesh; i++){
 	    	for(int j = 0; j <n_demesw; j++){
 	    		fproft << i << ", " << j << ", " << deme[i][j][0] << ", " << deme[i][j][1] <<endl;
@@ -761,7 +765,7 @@ int main (int argc, char * argv[]){
             	}
             	prof_count-=1;
 
-	        }*/
+	        }
 
 	        if (prof_hist !=0){
 	        	ostringstream strT;
@@ -777,7 +781,7 @@ int main (int argc, char * argv[]){
 	            	}
             	}
 
-	        }
+	        }*/
 
 
 		}
@@ -821,7 +825,7 @@ int main (int argc, char * argv[]){
 	//	}
 
     //}
-    ftime << B << " " << bandSize << " " << ID_seed << dt << endl;
+    ftime << B << " " << bandSize << " " << seed << " " << dt << endl;
 
     clock_t c_fin = clock();
     double run_time = double(c_fin - c_init)/CLOCKS_PER_SEC;
@@ -829,7 +833,7 @@ int main (int argc, char * argv[]){
 
 
     flog << "Number of generations, Number of species, Growth rate, Migration rate, B, Number of demes height,Number of demes width, Start time, Elapsed run time (secs_" << endl;
-    flog << n_gens << ", " <<  n_spec << ", " << g0 << ", " << M << ", " << n_demesh<<n_demesw << time_start<< run_time<< endl;
+    flog << n_gens << ", " <<  n_spec << ", " << g0 << ", " << M1 << ", " << n_demesh<<n_demesw << time_start<< run_time<< endl;
 
     fhet.close();
     fpop.close();

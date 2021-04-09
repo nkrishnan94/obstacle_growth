@@ -20,7 +20,7 @@ const int n_demesh = 200;
 const int n_demesw =60; 
 const unsigned int n_spec = 2;
 float M1 = 0.25;
-float M2 = 0.25;
+float M2 = 0;
 float B =0;
 float g0 = 0.01;
 int bandSize = 2;
@@ -257,7 +257,7 @@ int main (int argc, char * argv[]){
         //    h_thresh = atof(optarg); // cooperativity
 
         else if (c == 'M')
-            M = atof(optarg); // migration probability
+            M1 = atof(optarg); // migration probability
         else if (c == 'G')
             g0 = atof(optarg); // growth rate
         else if (c == 'F')
@@ -337,7 +337,7 @@ int main (int argc, char * argv[]){
 	ostringstream date_time, Kstr,  Mstr, Bstr, Gstr;
 	date_time << buffer;
 	Kstr << K;
-	Mstr << M;
+	Mstr << M1;
 	Bstr << B;
 	Gstr << g0;
 	string param_string =  "K"+Kstr.str()+"_M" + Mstr.str() + "_B" +Bstr.str() + "_G" +Gstr.str() +"_"+"Width20_";
@@ -794,7 +794,7 @@ int main (int argc, char * argv[]){
 
 
     flog << "Number of generations, Number of species, Growth rate, Migration rate, B, Number of demes height,Number of demes width, Start time, Elapsed run time (secs_" << endl;
-    flog << n_gens << ", " <<  n_spec << ", " << g0 << ", " << M << ", " << n_demesh<<n_demesw << time_start<< run_time<< endl;
+    flog << n_gens << ", " <<  n_spec << ", " << g0 << ", " << M1 << ", " << n_demesh<<n_demesw << time_start<< run_time<< endl;
 
     fhet.close();
     fpop.close();

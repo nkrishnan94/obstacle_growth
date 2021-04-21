@@ -1,2 +1,0 @@
-Number of generations, Number of species, Growth rate, Migration rate, B, Number of demes height,Number of demes width, Start time, Elapsed run time (secs_
-800, 2, 0.02, 0.15, 2006016178939093.25373
